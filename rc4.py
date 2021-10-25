@@ -35,8 +35,4 @@ class RC4:
 
             t = (S[i] + S[j]) % 256
             k.append(S[t])
-    
-    # XOR
-    def xor(self, string, keystream):
-        text = []
-        
+            return k  
