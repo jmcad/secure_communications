@@ -1,9 +1,6 @@
 class RC4:
-    def __init__(self) -> None:
-        pass
-
     # Key Scheduling Algorithm
-    def ksa(self, key):
+    def ksa(key):
         S = [None]*256
         T = [None]*256
         j = 0
@@ -23,7 +20,7 @@ class RC4:
             return S
 
     # Pseudo Random Number Generator Algorithm
-    def prng(self, S):
+    def prng(S):
         i, j = 0
         k = []
 
