@@ -1,4 +1,4 @@
-class DiffieHellman:
+class DH:
     def __init__(self, public_key1, public_key2, private_key):
         self.public_key1 = public_key1
         self.public_key2 = public_key2
