@@ -1,5 +1,4 @@
-from flask import Flask, render_template, redirect, url_for
-from flask.globals import request
+from flask import Flask, render_template, redirect, url_for, request
 from diffie_hellman import DH
 import sdes, csprng
 import requests
@@ -9,11 +8,17 @@ app = Flask(__name__)
 
 shared_base = 5     # g
 shared_prime = 23   # p
-bob_private = 15 
+bob_private = 190 
 bob = DH(shared_base, shared_prime, bob_private) #randint, prime, private key
 
 ct = []
-KEY = []
+KEY = dict()
+
+def list2string(lst):
+    string = ""
+    for i in lst:
+        string += i
+    return string
 
 @app.route("/", methods=["POST", "GET"])
 def index():
@@ -34,8 +39,12 @@ def index():
 
         return redirect(url_for("success"))
     else:
+        # clear the encrypted message array list
+        # everytime the /getmsg is invoked
+        ct.clear()   
         return render_template("index.html")
 
+# generates bob's public key
 @app.route("/bobpub")
 def genbobpub():
     x_bob = bob.gen_pubkey()
@@ -47,35 +56,39 @@ def success():
 
 @app.route("/encmsg")
 def encmsg():
-    string = ""
-    for i in ct:
-        string += i
-    return f'{string}'
+    msg = list2string(ct)
+    # clear the encrypted message array list
+    ct.clear()
+    return f'{msg}'
 
+# gets the public key of the opposite side
 @app.route("/getpub")
 def getpub():
-    ralice = requests.get("http://127.0.0.1:8000/alicepub")
-    pub_alice = int(ralice.text)
-    k_bob = bob.gen_secret(pub_alice)
-    decimaltobinary = bin(k_bob).replace("0b", "")
-    new_key = [ord(c) for c in decimaltobinary]
-    keystream = csprng.rc4(new_key, 2)
-    keystream = [bin(k).replace("0b", "") for k in keystream]
-    K = ''.join(keystream)
-    KEY.append(K)
-    return f'Your Shared Key is {K}'
+    try:
+        ralice = requests.get("http://127.0.0.1:8000/alicepub")
+        pub_alice = int(ralice.text)
+        k_bob = bob.gen_secret(pub_alice)
+        decimaltobinary = bin(k_bob).replace("0b", "")
+        new_key = [ord(c) for c in decimaltobinary]
+        keystream = csprng.rc4(new_key, 2)
+        keystream = [bin(k).replace("0b", "") for k in keystream]
+        K = ''.join(keystream)
+        KEY["alice"] = K
+    except:
+        print("Something went wrong!")
+    return f'Your Shared Key is {KEY["alice"]}'
 
 @app.route("/getmsg")
 def getmsg():
     # gets the message and decrypt it
-    renc = requests.get("http://127.0.0.1:8000/encmsg")
-    encrypted_text = renc.text
+    r = requests.get("http://127.0.0.1:8000/encmsg")
+    encrypted_text = r.text
 
     deciphered_text = []
     split_strings = []
 
     KEYSHARED = ""
-    for i in KEY:
+    for i in KEY["alice"]:
         KEYSHARED += i
 
     n = 8
@@ -89,7 +102,7 @@ def getmsg():
         deciphered_text[i] = chr(int(x, 2))
     
     originaltext = "".join(deciphered_text)
-    return f"{originaltext}"
+    return f"<h2>{originaltext}</h2>"
 
 if __name__ == "__main__":
     app.run(debug=True, threaded=True)
