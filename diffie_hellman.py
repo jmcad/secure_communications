@@ -1,14 +1,14 @@
 class DH:
-    def __init__(self, public_key1, public_key2, private_key):
-        self.public_key1 = public_key1
-        self.public_key2 = public_key2
-        self.private_key = private_key
+    def __init__(self, randint, prime, private_key):
+        self.randint = randint                  # g
+        self.prime = prime                      # p
+        self.private_key = private_key          
     
-    def gen_key(self):
-        x = self.public_key1**self.private_key % self.public_key2
+    def gen_pubkey(self):
+        x = (self.randint**self.private_key) % self.prime
         return x
     
-    def gen_secret(self, gpk):
-        k = gpk**self.private_key % self.public_key2
+    def gen_secret(self, public_key):
+        k = (public_key**self.private_key) % self.prime
         return k
     
