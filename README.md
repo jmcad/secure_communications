@@ -1,5 +1,5 @@
-# DAT510 Assigment 2 - Secure Communications
-To test part 2, two flask apps are needed.
+# Secure Communications
+To test, two flask apps are needed.
 The scripts names are alice.py and bob.py:
 ```
 export FLASK_APP=alice.py
